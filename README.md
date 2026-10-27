@@ -2,6 +2,10 @@
 
 An end-to-end text classification project that cleans customer reviews, converts text to TF-IDF features, and compares Multinomial Naive Bayes with Logistic Regression.
 
+## Project Preview
+
+![Sentiment project preview: class balance, illustrative model metrics, and Naive Bayes confusion matrix](screenshots/01_project_preview.png)
+
 > **Dataset limitation:** The supplied data has only 10 reviews (5 positive, 4 negative, and 1 neutral). The neutral example is retained in training, but this dataset is too small to support meaningful benchmarks or reliable generalization claims. Treat the notebook metrics as a demonstration only.
 
 ## Project structure
@@ -15,6 +19,8 @@ NLP-Sentiment-Classification-on-Customer-Reviews/
 │   └── sentiment_classification.ipynb
 ├── src/
 │   └── sentiment_classifier.py
+├── screenshots/
+│   └── 01_project_preview.png
 ├── requirements.txt
 └── README.md
 ```

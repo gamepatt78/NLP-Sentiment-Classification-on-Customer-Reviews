@@ -1,61 +1,70 @@
-# Task 4: NLP Sentiment Classification
+# NLP Sentiment Classification on Customer Reviews
 
-This project demonstrates an end-to-end text-classification workflow for customer reviews. It cleans review text, converts reviews into TF-IDF features, and compares Multinomial Naive Bayes with Logistic Regression.
+An end-to-end text classification project that cleans customer reviews, converts text to TF-IDF features, and compares Multinomial Naive Bayes with Logistic Regression.
 
-> **Dataset limitation:** The supplied CSV contains only 10 reviews: 5 positive, 4 negative, and 1 neutral. The neutral example is retained and included in training, but this dataset is far too small for reliable generalization or meaningful model benchmarking. Treat the reported hold-out metrics as a pipeline demonstration only.
+> **Dataset limitation:** The supplied data has only 10 reviews (5 positive, 4 negative, and 1 neutral). The neutral example is retained in training, but this dataset is too small to support meaningful benchmarks or reliable generalization claims. Treat the notebook metrics as a demonstration only.
 
-## Project files
+## Project structure
 
-| File | Description |
-|---|---|
-| `sentiment_reviews.csv` | Supplied review dataset |
-| `sentiment_classification.ipynb` | Complete, runnable analysis notebook |
-| `requirements.txt` | Python package requirements |
+```text
+NLP-Sentiment-Classification-on-Customer-Reviews/
+├── data/
+│   ├── README.md
+│   └── sentiment_reviews.csv
+├── notebooks/
+│   └── sentiment_classification.ipynb
+├── src/
+│   └── sentiment_classifier.py
+├── requirements.txt
+└── README.md
+```
 
 ## Dataset
 
-The CSV has three columns:
-
-| Column | Description |
-|---|---|
-| `review_id` | Review record identifier |
-| `review_text` | Customer review text |
-| `sentiment` | Review label: `positive`, `negative`, or `neutral` |
-
-The requested polarity task focuses on positive and negative sentiment. Since the provided data also contains a neutral record, the notebook preserves the full dataset and treats sentiment as a three-class classification problem instead of discarding that example.
+The CSV contains `review_id`, `review_text`, and `sentiment`. Labels are `positive`, `negative`, and `neutral`. The notebook preserves the neutral record and treats the task as three-class classification. See [`data/README.md`](data/README.md) for dataset details.
 
 ## Workflow
 
-1. Validate the CSV schema and inspect class counts and sample reviews.
-2. Clean text by removing HTML tags, lowercasing, tokenizing, removing English stopwords, and lemmatizing with NLTK's WordNet lemmatizer.
-3. Use a reproducible hold-out split. Labels represented by only one record are kept in training so the split can be stratified across the other classes.
-4. Fit `TfidfVectorizer(max_features=5000)` and compare `MultinomialNB` and `LogisticRegression` in scikit-learn pipelines.
-5. Report accuracy, weighted and macro precision/recall/F1, class reports, and confusion matrices.
-6. Use `predict_sentiment()` to classify custom review text and show per-class probabilities.
+1. Validate and inspect the review data.
+2. Remove HTML and punctuation, lowercase and tokenize text, remove English stopwords, and lemmatize tokens with NLTK.
+3. Use a reproducible hold-out split. Labels represented by a single example are kept in training; those labels cannot be independently evaluated.
+4. Fit `TfidfVectorizer(max_features=5000)` on training data and compare Multinomial Naive Bayes and Logistic Regression.
+5. Report accuracy, weighted and macro precision/recall/F1, classification reports, and confusion matrices.
+6. Try custom reviews with the reusable `predict_sentiment()` helper in `src/sentiment_classifier.py`.
 
-The vectorizer is fitted only on training data to avoid leaking vocabulary information from the test set. The test set is extremely small, and a one-record class cannot be independently evaluated; the notebook makes that limitation explicit.
+The vectorizer is trained only on the training reviews to prevent vocabulary leakage. The test set is extremely small, so its scores are not dependable estimates of model performance.
 
-## Setup and run
+## Setup
 
-From this directory, install the requirements and open the notebook:
+Run these commands from the project root:
 
 ```bash
 python -m pip install -r requirements.txt
-jupyter notebook sentiment_classification.ipynb
+jupyter notebook notebooks/sentiment_classification.ipynb
 ```
 
-Run the notebook cells from top to bottom. NLTK stopword and WordNet corpora are downloaded by the setup cell if they are not already installed; the first run therefore needs internet access.
+Run notebook cells from top to bottom. NLTK stopword and WordNet data are downloaded by the source module if they are missing; first-time setup requires internet access.
 
-## Interactive prediction
-
-After running the training cells, call the helper with a review:
+For a quick prediction from the project root:
 
 ```python
-predict_sentiment("The setup was easy and the product works perfectly.")
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path("src").resolve()))
+from sentiment_classifier import build_models, load_reviews, predict_sentiment, split_reviews
+
+reviews = load_reviews("data/sentiment_reviews.csv")
+X_train, _, y_train, _, _, _ = split_reviews(reviews)
+model = build_models()["Multinomial Naive Bayes"].fit(X_train, y_train)
+predict_sentiment("The setup was easy and the product works perfectly.", model)
 ```
 
-It returns the predicted sentiment and the model's class probabilities. With only 10 training records, these predictions are illustrative and should not be used for real customer decisions.
+The prediction helper returns a sentiment and per-class probabilities. Because the training sample is tiny, predictions are illustrative and should not be used for real customer decisions.
 
-## Improving the model
+## Limitations and next steps
 
-For a meaningful evaluation, gather substantially more labeled reviews with sufficient examples in every class. Keep a separate representative test set, consider cross-validation, inspect label quality, and evaluate class-specific metrics. Avoid reporting a single accuracy score as evidence of production readiness.
+- Ten examples cannot teach broad language patterns or support stable evaluation.
+- The single neutral review is necessarily kept in training and has no independent test evaluation.
+- Gather a larger, representative, consistently labeled dataset with sufficient examples in every class before drawing conclusions.
+- With more data, use a fixed representative test set or stratified cross-validation and inspect class-specific metrics before deployment.
